@@ -482,8 +482,6 @@
   const API_NS  = 'huhmp-oasih';
   const API_KEY = 'wifi-trampa-2026';
   const HIT_URL = `https://api.countapi.xyz/hit/${API_NS}/${API_KEY}`;
-  const GET_URL = `https://api.countapi.xyz/get/${API_NS}/${API_KEY}`;
-
   const numEl  = document.getElementById('hit-num');
   const subEl  = document.getElementById('hit-sub');
   const rankEl = document.getElementById('hit-rank');
@@ -491,75 +489,78 @@
   function animateNum(newVal) {
     numEl.textContent = newVal;
     numEl.classList.add('bump');
-    setTimeout(() => numEl.classList.remove('bump'), 380);
-  }
 
+    setTimeout(() => {
+      numEl.classList.remove('bump');
+    }, 380);
+  }
   function rankLabel(n) {
-    if (n === 1)  return '¡Primera víctima!';
-    if (n <= 5)   return `Víctima #${n} — de las primeras`;
-    if (n <= 10)  return `Víctima #${n}`;
-    if (n <= 20)  return `Víctima #${n} de muchas...`;
+    if (n === 1) return '¡Primera víctima!';
+    if (n <= 5) return `Víctima #${n} — de las primeras`;
+    if (n <= 10) return `Víctima #${n}`;
+    if (n <= 20) return `Víctima #${n} de muchas...`;
     return `Víctima #${n}`;
   }
 
-  // Registra esta visita y obtiene el nuevo total
   fetch(HIT_URL)
     .then(r => r.json())
     .then(data => {
+      console.log(data);
       const count = data.value;
       animateNum(count);
-      subEl.textContent = count === 1
-        ? 'Eres la primera persona en caer hoy'
-        : `Tú eres la persona número ${count} en caer`;
+      subEl.textContent =
+        count === 1
+          ? 'Eres la primera persona en caer hoy'
+          : `Tú eres la persona número ${count} en caer`;
+
       rankEl.textContent = rankLabel(count);
     })
-    .catch(() => {
-      // Si falla la API (sin internet, CORS, etc.) muestra el contador en modo offline
+    .catch(error => {
+      console.error(error);
       numEl.textContent = '?';
-      subEl.textContent = 'Contador sin conexión — revisa en el panel de administración';
+      subEl.textContent =
+        'No fue posible conectar con el contador';
     });
 
   // ── TIMER ──
   let seconds = 0;
   setInterval(() => {
     seconds++;
-    const m = String(Math.floor(seconds/60)).padStart(2,'0');
-    const s = String(seconds%60).padStart(2,'0');
-    document.getElementById('timer').textContent = m+':'+s;
+    const minutes = String(
+      Math.floor(seconds / 60)
+    ).padStart(2, '0');
+    const secs = String(
+      seconds % 60
+    ).padStart(2, '0');
+    document.getElementById('timer').textContent =
+      `${minutes}:${secs}`;
   }, 1000);
-
-  // ── DEVICE DETECTION ──
+  // ── DETECCIÓN DE DISPOSITIVO ──
   const ua = navigator.userAgent;
-  const isMobile = /Mobi|Android|iPhone|iPad/.test(ua);
-  document.getElementById('device-type').textContent = isMobile ? '📱 Dispositivo Móvil' : '💻 Computador';
-
-  let os = 'Desconocido';
-  if(/Windows/.test(ua))      os = 'Windows';
-  else if(/Mac OS/.test(ua))  os = 'macOS';
-  else if(/Android/.test(ua)) os = 'Android';
-  else if(/iPhone|iPad/.test(ua)) os = 'iOS';
-  else if(/Linux/.test(ua))   os = 'Linux';
-  document.getElementById('os-info').textContent = os;
-
-  let br = 'Desconocido';
-  if(/Chrome/.test(ua) && !/Chromium|Edge/.test(ua)) br = 'Google Chrome';
-  else if(/Firefox/.test(ua)) br = 'Firefox';
-  else if(/Safari/.test(ua) && !/Chrome/.test(ua)) br = 'Safari';
-  else if(/Edge/.test(ua))    br = 'Microsoft Edge';
-  document.getElementById('browser-info').textContent = br;
-
-  function updateTime() {
+  document.getElementById('device-type').textContent =
+    /Mobile|Android|iPhone/i.test(ua)
+      ? 'Dispositivo móvil'
+      : 'Computador';
+  document.getElementById('os-info').textContent =
+    navigator.platform;
+  document.getElementById('browser-info').textContent =
+    navigator.appName;
+  // ── HORA LOCAL ──
+  function updateClock() {
     const now = new Date();
     document.getElementById('local-time').textContent =
-      now.toLocaleTimeString('es-CO', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      now.toLocaleTimeString();
   }
-  updateTime(); setInterval(updateTime, 1000);
-
-  // ── SHOW LESSON ──
+  updateClock();
+  setInterval(updateClock, 1000);
+  // ── MOSTRAR LECCIÓN ──
   function showLesson() {
-    const el = document.getElementById('phase2');
-    el.style.display = 'block';
-    el.scrollIntoView({behavior:'smooth', block:'start'});
+    const phase2 =
+      document.getElementById('phase2');
+    phase2.style.display = 'block';
+    phase2.scrollIntoView({
+      behavior: 'smooth'
+    });
   }
 </script>
 </body>

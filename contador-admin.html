@@ -127,10 +127,10 @@
     <div class="row"><label>Clave (key)</label><span id="d-key">wifi-trampa-2026</span></div>
     <div class="row"><label>Última consulta</label><span id="d-time">—</span></div>
     <div class="row"><label>Estado API</label><span id="d-status">—</span></div>
-    <div class="url-box" id="d-url">https://api.countapi.xyz/get/huhmp-oasih/wifi-trampa-2026</div>
+    <div class="url-box" id="d-url">https://api.counterapi.dev/v1/huhmp-oasih/wifi-trampa-2026/get</div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="fetchCount()">🔄 Actualizar ahora</button>
-      <a class="btn btn-gray" id="api-link" href="https://api.countapi.xyz/get/huhmp-oasih/wifi-trampa-2026" target="_blank" rel="noopener">🔗 Ver en API directa</a>
+      <a class="btn btn-gray" id="api-link" href="https://api.counterapi.dev/v1/huhmp-oasih/wifi-trampa-2026/get" target="_blank" rel="noopener">🔗 Ver en API directa</a>
     </div>
   </div>
 
@@ -146,7 +146,7 @@
       <button class="btn btn-primary" onclick="setCounter()">✅ Aplicar valor</button>
       <button class="btn btn-danger" onclick="resetCounter()">🔴 Reiniciar a 0</button>
     </div>
-    <p class="api-note">Nota: CountAPI es pública. Si necesitas máxima privacidad, cambia el <code>API_KEY</code> en <code>wifi-trampa.html</code> a un nombre menos predecible, por ejemplo: <code>wifi-trampa-huhmp-2026-priv</code>.</p>
+    <p class="api-note">Nota: counterapi.dev es gratuita y de código abierto. Si quieres máxima privacidad, cambia el <code>COUNTER_KEY</code> en <code>wifi-trampa.html</code> a un nombre menos predecible, por ejemplo: <code>wifi-trampa-huhmp-x7k2</code>.</p>
   </div>
 
   <!-- Cambiar key -->
@@ -177,8 +177,9 @@
   let NS  = 'huhmp-oasih';
   let KEY = 'wifi-trampa-2026';
 
-  function getUrl()  { return `https://api.countapi.xyz/get/${NS}/${KEY}`; }
-  function setUrl(v) { return `https://api.countapi.xyz/set/${NS}/${KEY}?value=${v}`; }
+  function getUrl()  { return `https://api.counterapi.dev/v1/${NS}/${KEY}/get`; }
+  function upUrl()   { return `https://api.counterapi.dev/v1/${NS}/${KEY}/up`; }
+  function setUrl(v) { return `https://api.counterapi.dev/v1/${NS}/${KEY}/set?value=${v}`; }
 
   const kpiEl  = document.getElementById('kpi-num');
   const subEl  = document.getElementById('kpi-sub');
@@ -206,11 +207,14 @@
   function fetchCount() {
     statEl.textContent = 'Consultando...'; statEl.style.color = '#888';
     fetch(getUrl())
-      .then(r => r.json())
-      .then(d => updateUI(d.value))
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(d => {
+        const count = d.count ?? d.value ?? d.hits ?? 0;
+        updateUI(count);
+      })
       .catch(() => {
         kpiEl.textContent = '?';
-        subEl.textContent = 'No se pudo conectar con CountAPI';
+        subEl.textContent = 'No se pudo conectar con el servidor del contador';
         statEl.textContent = '❌ Sin conexión'; statEl.style.color = '#C0392B';
       });
   }
@@ -224,14 +228,15 @@
     }
     st.textContent = 'Aplicando...'; st.className = 'status info';
     fetch(setUrl(val))
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(d => {
-        updateUI(d.value);
-        st.textContent = `✅ Contador establecido en ${d.value}`;
+        const count = d.count ?? d.value ?? val;
+        updateUI(count);
+        st.textContent = `✅ Contador establecido en ${count}`;
         st.className = 'status ok';
       })
       .catch(() => {
-        st.textContent = '❌ No se pudo conectar con CountAPI';
+        st.textContent = '❌ No se pudo aplicar — verifica la conexión';
         st.className = 'status err';
       });
   }
@@ -254,10 +259,11 @@
     st.textContent = `Consultando contador para ${NS}/${KEY}...`;
     st.className = 'status info';
     fetch(url)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(d => {
-        updateUI(d.value);
-        st.textContent = `✅ Contador cargado: ${d.value} visitas`;
+        const count = d.count ?? d.value ?? d.hits ?? 0;
+        updateUI(count);
+        st.textContent = `✅ Contador cargado: ${count} visitas`;
         st.className = 'status ok';
       })
       .catch(() => {
